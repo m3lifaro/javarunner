@@ -1,31 +1,53 @@
 package com.example.demo.service.implementation;
 
-import freemarker.template.TemplateException;
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
+import com.example.demo.entity.RunResult;
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
+import org.joor.Reflect;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class TaskRunnerService {
 
-    private AtomicLong counter;
+    private AtomicLong counter = new AtomicLong();
 
-    private final TestInstanceProducer testInstanceProducer;
-
-    public TaskRunnerService(TestInstanceProducer testInstanceProducer) {
-        this.counter = new AtomicLong();
-        this.testInstanceProducer = testInstanceProducer;
-    }
-
-    public Result run(String classString, Long taskId) throws IOException, TemplateException {
+    public RunResult run(String classString, List<List<String>> input) {
         long executionId = counter.incrementAndGet();
+        RunResult result = new RunResult();
+        result.setSuccessful(true);
+        result.setOutput(new ArrayList<>());
 
-        Class testInstance = testInstanceProducer.newTestInstance(executionId, taskId, classString);
+        Reflect compile;
+        try {
+            String replace = classString.replace("public class Task {", "public class Task" + executionId + " {");
+            compile = Reflect.compile("com.example.demo.Task" + executionId, replace).create();
+            result.setCompiled(true);
+        } catch (Exception e){
+            e.printStackTrace();
+            result.setCompiled(false);
+            result.setSuccessful(false);
+            return result;
+        }
 
-        return JUnitCore.runClasses(testInstance);
+        Stopwatch stopwatch = Stopwatch.createStarted();
+
+        for (List<String> strings : input) {
+            try {
+                List<String> run = compile.call("run", strings).get();
+                result.getOutput().add(run);
+            } catch (Exception e){
+                e.printStackTrace();
+                result.setSuccessful(false);
+                result.getOutput().add(Lists.newArrayList("ERROR"));
+            }
+        }
+        result.setDurationMills(stopwatch.stop().elapsed(TimeUnit.MILLISECONDS));
+        return result;
     }
 
 }

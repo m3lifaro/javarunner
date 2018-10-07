@@ -14,7 +14,7 @@ public class TaskExecutionResponse implements Serializable {
     private boolean compiled;
     private long testCount;
     private long testFailed;
-    private List<Failure> failures;
+    private List<List<String>> output;
 
 
     public String getRqUid() {
@@ -65,11 +65,11 @@ public class TaskExecutionResponse implements Serializable {
         this.testFailed = testFailed;
     }
 
-    public List<Failure> getFailures() {
-        return failures;
+    public List<List<String>> getOutput() {
+        return output;
     }
 
-    public void setFailures(List<Failure> failures) {
-        this.failures = failures;
+    public void setOutput(List<List<String>> output) {
+        this.output = output;
     }
 }

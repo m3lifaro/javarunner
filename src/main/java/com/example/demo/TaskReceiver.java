@@ -1,15 +1,12 @@
 package com.example.demo;
 
+import com.example.demo.entity.RunResult;
 import com.example.demo.entity.TaskExecutionRequest;
 import com.example.demo.entity.TaskExecutionResponse;
 import com.example.demo.service.implementation.TaskRunnerService;
-import freemarker.template.TemplateException;
-import org.junit.runner.Result;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.io.IOException;
 
 @RestController
 public class TaskReceiver {
@@ -21,20 +18,19 @@ public class TaskReceiver {
     }
 
     @PostMapping(path = "/execute")
-    public TaskExecutionResponse executeRequest(@RequestBody TaskExecutionRequest request) throws IOException, TemplateException {
+    public TaskExecutionResponse executeRequest(@RequestBody TaskExecutionRequest request) {
 
-        Result run = taskRunnerService.run(request.getTaskSource(), Long.parseLong(request.getTask()));
+        RunResult run = taskRunnerService.run(request.getTaskSource(), request.getInput());
 
         TaskExecutionResponse response = new TaskExecutionResponse();
         response.setCompiled(true);
-        response.setDurationMs(run.getRunTime());
+        response.setDurationMs(run.getDurationMills());
         response.setRqUid(request.getRqUid());
-        response.setSuccessful(run.wasSuccessful());
-        response.setTestCount(run.getRunCount());
-        response.setTestFailed(run.getFailureCount());
-        response.setFailures(run.getFailures());
+        response.setSuccessful(run.isSuccessful());
+        response.setTestCount(run.getOutput().size());
+        response.setTestFailed(run.getOutput().stream().filter(strings -> strings.contains("ERROR")).count());
+        response.setOutput(run.getOutput());
         return response;
     }
-
 
 }
