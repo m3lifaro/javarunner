@@ -1,8 +1,5 @@
 package com.example.demo.entity;
 
-import org.junit.runner.Result;
-import org.junit.runner.notification.Failure;
-
 import java.io.Serializable;
 import java.util.List;
 

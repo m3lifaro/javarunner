@@ -23,7 +23,7 @@ public class TaskReceiver {
         RunResult run = taskRunnerService.run(request.getTaskSource(), request.getInput());
 
         TaskExecutionResponse response = new TaskExecutionResponse();
-        response.setCompiled(true);
+        response.setCompiled(run.isCompiled());
         response.setDurationMs(run.getDurationMills());
         response.setRqUid(request.getRqUid());
         response.setSuccessful(run.isSuccessful());
